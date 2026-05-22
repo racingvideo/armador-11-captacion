@@ -11,10 +11,10 @@ const FORMATIONS = {
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Lateral Izquierdo", score: 4 }, { pos: "Volante Central (5)", score: 5 }] },
     { line: "Defensa", label: "Lateral izquierdo", accepts: [{ pos: "Lateral Izquierdo", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Volante Extremo", score: 5 }] },
     { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 3 }, { pos: "Defensa Central", score: 5 }] },
-    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
-    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
+    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Enganche", score: 3 }, { pos: "Volante Extremo", score: 4 }] },
+    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Enganche", score: 3 }, { pos: "Volante Extremo", score: 4 }] },
     { line: "Ataque", label: "Extremo derecho", accepts: [{ pos: "Extremo Derecho", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Izquierdo", score: 4 }, { pos: "Delantero Centro", score: 6 }] },
-    { line: "Ataque", label: "Delantero centro", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }] },
+    { line: "Ataque", label: "Delantero centro", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }, { pos: "Enganche", score: 6 }] },
     { line: "Ataque", label: "Extremo izquierdo", accepts: [{ pos: "Extremo Izquierdo", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Derecho", score: 4 }, { pos: "Delantero Centro", score: 6 }] }
   ],
   "1-4-2-3-1": [
@@ -23,12 +23,12 @@ const FORMATIONS = {
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Lateral Izquierdo", score: 4 }, { pos: "Volante Central (5)", score: 5 }] },
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Lateral Izquierdo", score: 4 }, { pos: "Volante Central (5)", score: 5 }] },
     { line: "Defensa", label: "Lateral izquierdo", accepts: [{ pos: "Lateral Izquierdo", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Volante Extremo", score: 5 }] },
-    { line: "Mediocampo", label: "Doble 5", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 3 }, { pos: "Defensa Central", score: 5 }] },
-    { line: "Mediocampo", label: "Doble 5", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 3 }, { pos: "Defensa Central", score: 5 }] },
-    { line: "Ataque", label: "Extremo derecho", accepts: [{ pos: "Extremo Derecho", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Izquierdo", score: 4 }] },
-    { line: "Ataque", label: "Media punta", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 3 }, { pos: "Delantero Centro", score: 5 }] },
-    { line: "Ataque", label: "Extremo izquierdo", accepts: [{ pos: "Extremo Izquierdo", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Derecho", score: 4 }] },
-    { line: "Ataque", label: "Delantero centro", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }] }
+    { line: "Volantes defensivos", label: "Doble 5", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 3 }, { pos: "Defensa Central", score: 5 }] },
+    { line: "Volantes defensivos", label: "Doble 5", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 3 }, { pos: "Defensa Central", score: 5 }] },
+    { line: "Tres cuartos", label: "Extremo derecho", accepts: [{ pos: "Extremo Derecho", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Izquierdo", score: 4 }] },
+    { line: "Tres cuartos", label: "Enganche", accepts: [{ pos: "Enganche", score: 0 }, { pos: "Volante Interno", score: 2 }, { pos: "Volante Central (5)", score: 3 }, { pos: "Volante Extremo", score: 3 }, { pos: "Delantero Centro", score: 5 }] },
+    { line: "Tres cuartos", label: "Extremo izquierdo", accepts: [{ pos: "Extremo Izquierdo", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Derecho", score: 4 }] },
+    { line: "Ataque", label: "Delantero centro", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }, { pos: "Enganche", score: 6 }] }
   ],
   "1-4-4-2": [
     { line: "Arquero", label: "Arquero", accepts: [{ pos: "Arquero", score: 0 }] },
@@ -36,12 +36,12 @@ const FORMATIONS = {
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Lateral Izquierdo", score: 4 }, { pos: "Volante Central (5)", score: 5 }] },
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Lateral Izquierdo", score: 4 }, { pos: "Volante Central (5)", score: 5 }] },
     { line: "Defensa", label: "Lateral izquierdo", accepts: [{ pos: "Lateral Izquierdo", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Volante Extremo", score: 5 }] },
-    { line: "Mediocampo", label: "Volante derecho", accepts: [{ pos: "Volante Extremo", score: 0 }, { pos: "Extremo Derecho", score: 1 }, { pos: "Volante Interno", score: 4 }] },
-    { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 2 }, { pos: "Defensa Central", score: 5 }] },
-    { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
-    { line: "Mediocampo", label: "Volante izquierdo", accepts: [{ pos: "Volante Extremo", score: 0 }, { pos: "Extremo Izquierdo", score: 1 }, { pos: "Volante Interno", score: 4 }] },
-    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }] },
-    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }] }
+    { line: "Mediocampo", label: "Volante derecho", accepts: [{ pos: "Volante Extremo", score: 0 }, { pos: "Extremo Derecho", score: 1 }, { pos: "Lateral Derecho", score: 3 }, { pos: "Volante Interno", score: 4 }] },
+    { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 2 }, { pos: "Enganche", score: 4 }, { pos: "Defensa Central", score: 5 }] },
+    { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Enganche", score: 3 }, { pos: "Volante Extremo", score: 4 }] },
+    { line: "Mediocampo", label: "Volante izquierdo", accepts: [{ pos: "Volante Extremo", score: 0 }, { pos: "Extremo Izquierdo", score: 1 }, { pos: "Lateral Izquierdo", score: 3 }, { pos: "Volante Interno", score: 4 }] },
+    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }, { pos: "Enganche", score: 6 }] },
+    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }, { pos: "Enganche", score: 6 }] }
   ],
   "1-3-5-2": [
     { line: "Arquero", label: "Arquero", accepts: [{ pos: "Arquero", score: 0 }] },
@@ -50,24 +50,24 @@ const FORMATIONS = {
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Lateral Izquierdo", score: 4 }] },
     { line: "Mediocampo", label: "Carrilero derecho", accepts: [{ pos: "Lateral Derecho", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Derecho", score: 3 }] },
     { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 2 }] },
-    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
-    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
+    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Enganche", score: 1 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
+    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Enganche", score: 1 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
     { line: "Mediocampo", label: "Carrilero izquierdo", accepts: [{ pos: "Lateral Izquierdo", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Izquierdo", score: 3 }] },
-    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }] },
-    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }] }
+    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }, { pos: "Enganche", score: 6 }] },
+    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }, { pos: "Enganche", score: 6 }] }
   ],
   "1-5-3-2": [
     { line: "Arquero", label: "Arquero", accepts: [{ pos: "Arquero", score: 0 }] },
-    { line: "Defensa", label: "Lateral derecho", accepts: [{ pos: "Lateral Derecho", score: 0 }, { pos: "Volante Extremo", score: 4 }] },
+    { line: "Defensa", label: "Lateral derecho", accepts: [{ pos: "Lateral Derecho", score: 0 }, { pos: "Volante Extremo", score: 4 }, { pos: "Extremo Derecho", score: 5 }] },
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }] },
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Volante Central (5)", score: 5 }] },
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Izquierdo", score: 4 }] },
-    { line: "Defensa", label: "Lateral izquierdo", accepts: [{ pos: "Lateral Izquierdo", score: 0 }, { pos: "Volante Extremo", score: 4 }] },
+    { line: "Defensa", label: "Lateral izquierdo", accepts: [{ pos: "Lateral Izquierdo", score: 0 }, { pos: "Volante Extremo", score: 4 }, { pos: "Extremo Izquierdo", score: 5 }] },
     { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 2 }] },
-    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
-    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
-    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }] },
-    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }] }
+    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Enganche", score: 1 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
+    { line: "Mediocampo", label: "Interno", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Enganche", score: 1 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Volante Extremo", score: 4 }] },
+    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }, { pos: "Enganche", score: 6 }] },
+    { line: "Ataque", label: "Delantero", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }, { pos: "Enganche", score: 6 }] }
   ],
   "1-3-4-3": [
     { line: "Arquero", label: "Arquero", accepts: [{ pos: "Arquero", score: 0 }] },
@@ -76,15 +76,15 @@ const FORMATIONS = {
     { line: "Defensa", label: "Zaguero", accepts: [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Lateral Izquierdo", score: 4 }] },
     { line: "Mediocampo", label: "Carrilero derecho", accepts: [{ pos: "Lateral Derecho", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Derecho", score: 3 }] },
     { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Central (5)", score: 0 }, { pos: "Volante Interno", score: 2 }] },
-    { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }] },
+    { line: "Mediocampo", label: "Volante central", accepts: [{ pos: "Volante Interno", score: 0 }, { pos: "Volante Central (5)", score: 2 }, { pos: "Enganche", score: 3 }] },
     { line: "Mediocampo", label: "Carrilero izquierdo", accepts: [{ pos: "Lateral Izquierdo", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Izquierdo", score: 3 }] },
     { line: "Ataque", label: "Extremo derecho", accepts: [{ pos: "Extremo Derecho", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Izquierdo", score: 4 }] },
-    { line: "Ataque", label: "Delantero centro", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }] },
+    { line: "Ataque", label: "Delantero centro", accepts: [{ pos: "Delantero Centro", score: 0 }, { pos: "Extremo Derecho", score: 5 }, { pos: "Extremo Izquierdo", score: 5 }, { pos: "Enganche", score: 6 }] },
     { line: "Ataque", label: "Extremo izquierdo", accepts: [{ pos: "Extremo Izquierdo", score: 0 }, { pos: "Volante Extremo", score: 1 }, { pos: "Extremo Derecho", score: 4 }] }
   ]
 };
 
-const LINE_ORDER = ["Arquero", "Defensa", "Mediocampo", "Ataque"];
+const LINE_ORDER = ["Arquero", "Defensa", "Volantes defensivos", "Mediocampo", "Tres cuartos", "Ataque"];
 const EMPTY_DUPLICATE_SUMMARY = { samePlayer: [], sameNameDifferentDate: [] };
 
 function cleanText(value) {
@@ -93,6 +93,23 @@ function cleanText(value) {
 
 function normalizeText(value) {
   return cleanText(value).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function getColumnValue(row, aliases) {
+  const normalizedRow = {};
+
+  Object.keys(row).forEach((key) => {
+    normalizedRow[normalizeText(key)] = row[key];
+  });
+
+  for (const alias of aliases) {
+    const normalizedAlias = normalizeText(alias);
+    if (Object.prototype.hasOwnProperty.call(normalizedRow, normalizedAlias)) {
+      return normalizedRow[normalizedAlias];
+    }
+  }
+
+  return "";
 }
 
 function parseExcelDate(value) {
@@ -140,11 +157,41 @@ function formatDateKey(date) {
   return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
 }
 
+function canonicalizePosition(value) {
+  const text = normalizeText(value);
+
+  if (!text || text === "none" || text === "posicion en cancha") return "";
+
+  if (text.includes("arquero") || text.includes("golero") || text.includes("portero")) return "Arquero";
+
+  if (text.includes("defensa central") || text.includes("zaguero") || text.includes("central")) return "Defensa Central";
+
+  if (text.includes("lateral derecho") || text === "ld" || text.includes("marcador derecho")) return "Lateral Derecho";
+  if (text.includes("lateral izquierdo") || text === "li" || text.includes("marcador izquierdo")) return "Lateral Izquierdo";
+
+  if (text.includes("volante central") || text.includes("mediocentro") || text.includes("medio centro") || text === "5" || text.includes("(5)")) return "Volante Central (5)";
+
+  if (text.includes("volante interno") || text.includes("interno")) return "Volante Interno";
+
+  if (text.includes("volante externo") || text.includes("volante extremo") || text.includes("carrilero")) return "Volante Extremo";
+
+  if (text.includes("extremo derecho") || text === "ed" || text.includes("punta derecha")) return "Extremo Derecho";
+  if (text.includes("extremo izquierdo") || text === "ei" || text.includes("punta izquierda")) return "Extremo Izquierdo";
+
+  if (text.includes("delantero centro") || text.includes("delantero central") || text.includes("centro delantero") || text.includes("centrodelantero") || text === "9") return "Delantero Centro";
+
+  if (text.includes("enganche") || text.includes("media punta") || text.includes("mediapunta") || text.includes("10")) return "Enganche";
+
+  return cleanText(value);
+}
+
 function splitPositions(value) {
-  return cleanText(value)
+  const positions = cleanText(value)
     .split(",")
-    .map((item) => cleanText(item))
-    .filter((item) => item && normalizeText(item) !== "none" && normalizeText(item) !== "posicion en cancha");
+    .map((item) => canonicalizePosition(item))
+    .filter(Boolean);
+
+  return [...new Set(positions)];
 }
 
 function getCategory(date) {
@@ -162,9 +209,99 @@ function getIdentityKey(player) {
 }
 
 function normalizeRow(row, index) {
-  const name = cleanText(row["Nombre completo"]);
-  const birthDate = parseExcelDate(row["Fecha de nacimiento"]);
-  const positions = splitPositions(row["Posición en cancha"]);
+  const name = cleanText(getColumnValue(row, [
+    "Nombre completo",
+    "Nombre Completo",
+    "NOMBRE COMPLETO",
+    "Nombre y apellido",
+    "Nombre y Apellido",
+    "NOMBRE Y APELLIDO",
+    "Jugador",
+    "JUGADOR",
+    "Nombre"
+  ]));
+
+  const birthDate = parseExcelDate(getColumnValue(row, [
+    "Fecha de nacimiento",
+    "Fecha de Nacimiento",
+    "FECHA DE NACIMIENTO",
+    "Fecha nacimiento",
+    "Fecha Nacimiento",
+    "FECHA NACIMIENTO",
+    "Nacimiento",
+    "NACIMIENTO",
+    "Fecha nac.",
+    "Fecha nac",
+    "Fecha de nac."
+  ]));
+
+  const positions = splitPositions(getColumnValue(row, [
+    "Posición en cancha",
+    "Posicion en cancha",
+    "Posición en Cancha",
+    "Posicion en Cancha",
+    "POSICIÓN EN CANCHA",
+    "POSICION EN CANCHA",
+    "Posición",
+    "Posicion",
+    "POSICIÓN",
+    "POSICION",
+    "Puesto",
+    "PUESTO"
+  ]));
+
+  const leg = cleanText(getColumnValue(row, [
+    "Pierna Hábil",
+    "Pierna hábil",
+    "Pierna habil",
+    "Pierna Habil",
+    "PIERNA HÁBIL",
+    "PIERNA HABIL",
+    "Pierna",
+    "PIERNA",
+    "Perfil",
+    "PERFIL"
+  ]));
+
+  const club = cleanText(getColumnValue(row, [
+    "Club actual o último club",
+    "Club actual o último Club",
+    "Club actual o ultimo club",
+    "Club actual o ultimo Club",
+    "CLUB ACTUAL O ÚLTIMO CLUB",
+    "CLUB ACTUAL O ULTIMO CLUB",
+    "Club actual",
+    "CLUB ACTUAL",
+    "Último club",
+    "Ultimo club",
+    "ULTIMO CLUB"
+  ]));
+
+  const background = cleanText(getColumnValue(row, [
+    "Antecedentes en Auf o Selección OFI",
+    "Antecedentes en AUF o Selección OFI",
+    "Antecedentes en Auf o Seleccion OFI",
+    "Antecedentes en AUF o Seleccion OFI",
+    "ANTECEDENTES EN AUF O SELECCIÓN OFI",
+    "ANTECEDENTES EN AUF O SELECCION OFI",
+    "Antecedentes",
+    "ANTECEDENTES",
+    "Antecedentes AUF",
+    "Selección OFI",
+    "Seleccion OFI"
+  ]));
+
+  const passStatus = cleanText(getColumnValue(row, [
+    "Calidad del pase",
+    "Calidad del Pase",
+    "CALIDAD DEL PASE",
+    "Pase",
+    "PASE",
+    "Condición del pase",
+    "Condicion del pase",
+    "CONDICION DEL PASE"
+  ]));
+
   const category = getCategory(birthDate);
   const rowNumber = index + 2;
 
@@ -176,14 +313,14 @@ function normalizeRow(row, index) {
     nameKey: normalizeText(name),
     positions,
     positionText: positions.join(", "),
-    leg: cleanText(row["Pierna Hábil"]),
+    leg,
     birthDate,
     birthDateText: formatDate(birthDate),
     birthDateKey: formatDateKey(birthDate),
     category,
-    club: cleanText(row["Club actual o último club"]),
-    background: cleanText(row["Antecedentes en Auf o Selección OFI"]),
-    passStatus: cleanText(row["Calidad del pase"]),
+    club,
+    background,
+    passStatus,
     duplicateRows: [],
     hasValidData: Boolean(name) && positions.length > 0 && category !== "Fecha inválida"
   };
@@ -521,7 +658,7 @@ function App() {
 
         setSelectedCategories(firstValidCategory ? [firstValidCategory] : []);
       } catch (err) {
-        setError("No se pudo leer el Excel. Revisá que sea un archivo .xlsx válido y que mantenga los encabezados originales del formulario.");
+        setError("No se pudo leer el Excel. Revisá que sea un archivo .xlsx válido y que mantenga columnas como nombre, fecha de nacimiento y posición en cancha.");
       }
     };
 
