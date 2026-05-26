@@ -163,23 +163,19 @@ function canonicalizePosition(value) {
   if (!text || text === "none" || text === "posicion en cancha") return "";
 
   if (text.includes("arquero") || text.includes("golero") || text.includes("portero")) return "Arquero";
-
   if (text.includes("defensa central") || text.includes("zaguero") || text.includes("central")) return "Defensa Central";
 
   if (text.includes("lateral derecho") || text === "ld" || text.includes("marcador derecho")) return "Lateral Derecho";
   if (text.includes("lateral izquierdo") || text === "li" || text.includes("marcador izquierdo")) return "Lateral Izquierdo";
 
   if (text.includes("volante central") || text.includes("mediocentro") || text.includes("medio centro") || text === "5" || text.includes("(5)")) return "Volante Central (5)";
-
   if (text.includes("volante interno") || text.includes("interno")) return "Volante Interno";
-
   if (text.includes("volante externo") || text.includes("volante extremo") || text.includes("carrilero")) return "Volante Extremo";
 
   if (text.includes("extremo derecho") || text === "ed" || text.includes("punta derecha")) return "Extremo Derecho";
   if (text.includes("extremo izquierdo") || text === "ei" || text.includes("punta izquierda")) return "Extremo Izquierdo";
 
   if (text.includes("delantero centro") || text.includes("delantero central") || text.includes("centro delantero") || text.includes("centrodelantero") || text === "9") return "Delantero Centro";
-
   if (text.includes("enganche") || text.includes("media punta") || text.includes("mediapunta") || text.includes("10")) return "Enganche";
 
   return cleanText(value);
@@ -322,7 +318,33 @@ function normalizeRow(row, index) {
     background,
     passStatus,
     duplicateRows: [],
+    isManual: false,
     hasValidData: Boolean(name) && positions.length > 0 && category !== "Fecha inválida"
+  };
+}
+
+function makeManualPlayer(name, teamIndex, pickIndex, previousPlayer = null) {
+  const cleanName = cleanText(name);
+
+  return {
+    id: previousPlayer?.isManual ? previousPlayer.id : `manual-${teamIndex}-${pickIndex}-${Date.now()}`,
+    rowNumber: "",
+    identityKey: "",
+    name: cleanName,
+    nameKey: normalizeText(cleanName),
+    positions: [],
+    positionText: "Agregado manualmente",
+    leg: "",
+    birthDate: null,
+    birthDateText: "",
+    birthDateKey: "",
+    category: "Manual",
+    club: "",
+    background: "",
+    passStatus: "",
+    duplicateRows: [],
+    isManual: true,
+    hasValidData: Boolean(cleanName)
   };
 }
 
@@ -396,6 +418,8 @@ function processRows(rows) {
 }
 
 function playerRoleScore(player, role) {
+  if (!player || player.isManual) return null;
+
   const scores = role.accepts
     .filter((rule) => player.positions.includes(rule.pos))
     .map((rule) => rule.score);
@@ -405,8 +429,16 @@ function playerRoleScore(player, role) {
 }
 
 function isManualAdjustment(pick) {
-  if (!pick.player) return false;
+  if (!pick.player || pick.player.isManual) return false;
   return playerRoleScore(pick.player, pick.role) === null;
+}
+
+function getPlayerDescription(pick) {
+  if (!pick.player) return "";
+  if (pick.player.isManual) return "Jugador agregado manualmente";
+
+  const description = `${pick.player.positionText} · ${pick.player.leg || "Sin pierna"}`;
+  return isManualAdjustment(pick) ? `${description} · Ajuste manual` : description;
 }
 
 function getLegBonus(player, role) {
@@ -426,6 +458,13 @@ function getPlayerFlexibility(player, roles) {
 
 function makeEmptyPick(role, roleIndex) {
   return { player: null, role, roleIndex, score: null };
+}
+
+function recalculateTeamStatus(team) {
+  return {
+    ...team,
+    isPartial: team.picked.filter((item) => item.player).length < team.picked.length
+  };
 }
 
 function getRoleOrder(remainingPlayers, roles) {
@@ -592,6 +631,7 @@ function App() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [formation, setFormation] = useState("1-4-3-3");
   const [teams, setTeams] = useState([]);
+  const [removedPlayers, setRemovedPlayers] = useState([]);
   const [error, setError] = useState("");
   const [isExporting, setIsExporting] = useState(false);
 
@@ -635,6 +675,10 @@ function App() {
     return new Set(teams.flatMap((team) => team.picked.filter((item) => item.player).map((item) => item.player.id)));
   }, [teams]);
 
+  const manualPlayersCount = useMemo(() => {
+    return teams.flatMap((team) => team.picked).filter((item) => item.player?.isManual).length;
+  }, [teams]);
+
   const notUsedPlayers = useMemo(() => {
     return filteredPlayers.filter((player) => !usedPlayers.has(player.id));
   }, [filteredPlayers, usedPlayers]);
@@ -642,6 +686,11 @@ function App() {
   const omittedDuplicatesCount = duplicateSummary.samePlayer.reduce((total, item) => total + item.count - 1, 0);
   const completeTeamsCount = teams.filter((team) => !team.isPartial).length;
   const partialTeamsCount = teams.filter((team) => team.isPartial).length;
+
+  function resetTeamsAndManualChanges() {
+    setTeams([]);
+    setRemovedPlayers([]);
+  }
 
   function handleFile(event) {
     const file = event.target.files?.[0];
@@ -652,7 +701,7 @@ function App() {
     setPlayers([]);
     setRawTotal(0);
     setDuplicateSummary(EMPTY_DUPLICATE_SUMMARY);
-    setTeams([]);
+    resetTeamsAndManualChanges();
 
     const reader = new FileReader();
 
@@ -683,7 +732,7 @@ function App() {
   }
 
   function toggleCategory(categoryToToggle) {
-    setTeams([]);
+    resetTeamsAndManualChanges();
     setError("");
     setSelectedCategories((current) => {
       if (current.includes(categoryToToggle)) {
@@ -694,18 +743,20 @@ function App() {
   }
 
   function selectAllCategories() {
-    setTeams([]);
+    resetTeamsAndManualChanges();
     setError("");
     setSelectedCategories(validCategories);
   }
 
   function clearCategories() {
-    setTeams([]);
+    resetTeamsAndManualChanges();
     setError("");
     setSelectedCategories([]);
   }
 
   function handleGenerate() {
+    setRemovedPlayers([]);
+
     if (!selectedCategories.length) {
       setTeams([]);
       setError("Seleccioná una o más categorías para generar equipos.");
@@ -756,6 +807,9 @@ function App() {
       nextTeams[fromTeamIndex].picked[fromPickIndex] = updatePickPlayer(fromPick, toPlayer);
       nextTeams[toTeamIndex].picked[toPickIndex] = updatePickPlayer(toPick, fromPlayer);
 
+      nextTeams[fromTeamIndex] = recalculateTeamStatus(nextTeams[fromTeamIndex]);
+      nextTeams[toTeamIndex] = recalculateTeamStatus(nextTeams[toTeamIndex]);
+
       return nextTeams;
     });
   }
@@ -783,6 +837,65 @@ function App() {
 
       nextTeams[teamIndex].picked[fromPickIndex] = updatePickPlayer(fromPick, toPlayer);
       nextTeams[teamIndex].picked[toPickIndex] = updatePickPlayer(toPick, fromPlayer);
+      nextTeams[teamIndex] = recalculateTeamStatus(nextTeams[teamIndex]);
+
+      return nextTeams;
+    });
+  }
+
+  function handleManualNameChange(teamIndex, pickIndex, value) {
+    setTeams((currentTeams) => {
+      const nextTeams = currentTeams.map((team) => ({
+        ...team,
+        picked: team.picked.map((pick) => ({ ...pick }))
+      }));
+
+      const pick = nextTeams[teamIndex]?.picked[pickIndex];
+      if (!pick) return currentTeams;
+
+      const manualName = cleanText(value);
+      if (!manualName) {
+        nextTeams[teamIndex].picked[pickIndex] = updatePickPlayer(pick, null);
+      } else {
+        const manualPlayer = makeManualPlayer(manualName, teamIndex, pickIndex, pick.player);
+        nextTeams[teamIndex].picked[pickIndex] = updatePickPlayer(pick, manualPlayer);
+      }
+
+      nextTeams[teamIndex] = recalculateTeamStatus(nextTeams[teamIndex]);
+
+      return nextTeams;
+    });
+  }
+
+  function handleRemovePlayer(teamIndex, pickIndex) {
+    setTeams((currentTeams) => {
+      const nextTeams = currentTeams.map((team) => ({
+        ...team,
+        picked: team.picked.map((pick) => ({ ...pick }))
+      }));
+
+      const team = nextTeams[teamIndex];
+      const pick = team?.picked[pickIndex];
+
+      if (!team || !pick?.player) return currentTeams;
+
+      const removedPlayer = pick.player;
+
+      setRemovedPlayers((currentRemoved) => [
+        ...currentRemoved,
+        {
+          id: `${Date.now()}-${teamIndex}-${pickIndex}-${removedPlayer.id}`,
+          name: removedPlayer.name,
+          positionText: removedPlayer.positionText || "Sin posición",
+          birthDateText: removedPlayer.birthDateText || "",
+          teamName: team.name,
+          roleLabel: pick.role.label,
+          origin: removedPlayer.isManual ? "Manual" : "Excel"
+        }
+      ]);
+
+      nextTeams[teamIndex].picked[pickIndex] = updatePickPlayer(pick, null);
+      nextTeams[teamIndex] = recalculateTeamStatus(nextTeams[teamIndex]);
 
       return nextTeams;
     });
@@ -936,7 +1049,7 @@ function App() {
 
             <div className="control-group">
               <label>Formación</label>
-              <select value={formation} onChange={(event) => { setFormation(event.target.value); setTeams([]); setError(""); }}>
+              <select value={formation} onChange={(event) => { setFormation(event.target.value); resetTeamsAndManualChanges(); setError(""); }}>
                 {Object.keys(FORMATIONS).map((item) => (
                   <option key={item} value={item}>{item}</option>
                 ))}
@@ -971,7 +1084,7 @@ function App() {
                   <section className="panel export-panel">
                     <div>
                       <h2>{teams.length} equipos generados</h2>
-                      <p>{completeTeamsCount} completos · {partialTeamsCount} incompletos · {usedPlayers.size} jugadores ubicados · {notUsedPlayers.length} sin ubicar.</p>
+                      <p>{completeTeamsCount} completos · {partialTeamsCount} incompletos · {usedPlayers.size} jugadores ubicados · {manualPlayersCount} agregados manualmente · {notUsedPlayers.length} fuera de los 11.</p>
                     </div>
                     <div className="export-actions">
                       <button className="secondary-button" onClick={() => handleExport("png")} disabled={isExporting}>{isExporting ? "Exportando..." : "Exportar todas las imágenes"}</button>
@@ -997,6 +1110,8 @@ function App() {
                         isExporting={isExporting}
                         onSwapPlayers={handleSwapPlayers}
                         onInternalSwapPlayers={handleInternalSwapPlayers}
+                        onManualNameChange={handleManualNameChange}
+                        onRemovePlayer={handleRemovePlayer}
                         onExportTeam={handleExport}
                       />
                     ))}
@@ -1008,8 +1123,8 @@ function App() {
 
           {teams.length > 0 && (
             <section className="panel table-panel">
-              <h2>Jugadores sin ubicar</h2>
-              <p className="small-text">Son jugadores válidos de las categorías seleccionadas que no pudieron ubicarse en ningún espacio de la formación elegida.</p>
+              <h2>Jugadores sin ubicar o fuera de los 11</h2>
+              <p className="small-text">Son jugadores válidos de las categorías seleccionadas que no quedaron actualmente en ningún equipo.</p>
               <div className="table-wrap">
                 <table>
                   <thead>
@@ -1024,7 +1139,7 @@ function App() {
                   <tbody>
                     {notUsedPlayers.length === 0 ? (
                       <tr>
-                        <td colSpan="5">No quedaron jugadores sin ubicar.</td>
+                        <td colSpan="5">No quedaron jugadores fuera de los 11.</td>
                       </tr>
                     ) : (
                       notUsedPlayers.map((player) => (
@@ -1037,6 +1152,37 @@ function App() {
                         </tr>
                       ))
                     )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {removedPlayers.length > 0 && (
+            <section className="panel table-panel">
+              <h2>Jugadores quitados manualmente</h2>
+              <p className="small-text">Registro de jugadores eliminados de un puesto después del armado automático.</p>
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Jugador</th>
+                      <th>Origen</th>
+                      <th>Salió de</th>
+                      <th>Equipo</th>
+                      <th>Posición original</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {removedPlayers.map((player) => (
+                      <tr key={player.id}>
+                        <td>{player.name}</td>
+                        <td>{player.origin}</td>
+                        <td>{player.roleLabel}</td>
+                        <td>{player.teamName}</td>
+                        <td>{player.positionText}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -1117,7 +1263,7 @@ function App() {
   );
 }
 
-function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPlayers, onInternalSwapPlayers, onExportTeam }) {
+function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPlayers, onInternalSwapPlayers, onManualNameChange, onRemovePlayer, onExportTeam }) {
   const missing = team.picked.filter((item) => !item.player).length;
 
   return (
@@ -1140,20 +1286,50 @@ function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPl
 
       <div className="pitch">
         {groupTeam(team).map((group) => (
-          <div className={`pitch-line line-${normalizeText(group.line)}`} key={group.line}>
+          <div className={`pitch-line line-${sanitizeFileName(group.line)}`} key={group.line}>
             {getVisualLineItems(group.items).map((item) => {
               const swapOptions = getSwapOptions(teams, teamIndex, item);
               const internalSwapOptions = getInternalSwapOptions(team, item.roleIndex);
-              const manualAdjustment = isManualAdjustment(item);
+              const playerDescription = getPlayerDescription(item);
 
               return (
                 <div className={`player-chip ${!item.player ? "missing" : ""}`} key={`${team.name}-${item.roleIndex}`}>
                   <span>{item.role.label}</span>
                   <strong>{item.player ? item.player.name : "Sin jugador"}</strong>
-                  {item.player && (
-                    <small>
-                      {item.player.positionText} · {item.player.leg || "Sin pierna"}{manualAdjustment ? " · Ajuste manual" : ""}
-                    </small>
+
+                  {item.player && <small>{playerDescription}</small>}
+
+                  {(!item.player || item.player.isManual) && !isExporting && (
+                    <input
+                      type="text"
+                      value={item.player?.isManual ? item.player.name : ""}
+                      onChange={(event) => onManualNameChange(teamIndex, item.roleIndex, event.target.value)}
+                      placeholder="Escribir jugador manual"
+                      style={{
+                        width: "100%",
+                        marginTop: "8px",
+                        padding: "8px 10px",
+                        borderRadius: "10px",
+                        border: "1px solid rgba(0,0,0,0.18)",
+                        fontSize: "12px"
+                      }}
+                    />
+                  )}
+
+                  {item.player && !isExporting && (
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => onRemovePlayer(teamIndex, item.roleIndex)}
+                      style={{
+                        width: "100%",
+                        marginTop: "8px",
+                        padding: "8px 10px",
+                        fontSize: "12px"
+                      }}
+                    >
+                      Quitar del 11
+                    </button>
                   )}
 
                   {item.player && !isExporting && internalSwapOptions.length > 0 && (
