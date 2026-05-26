@@ -404,6 +404,11 @@ function playerRoleScore(player, role) {
   return Math.min(...scores);
 }
 
+function isManualAdjustment(pick) {
+  if (!pick.player) return false;
+  return playerRoleScore(pick.player, pick.role) === null;
+}
+
 function getLegBonus(player, role) {
   const leg = normalizeText(player.leg);
   const label = normalizeText(role.label);
@@ -553,6 +558,18 @@ function getSwapOptions(teams, currentTeamIndex, currentPick) {
         role: pick.role
       }));
   });
+}
+
+function getInternalSwapOptions(team, currentPickIndex) {
+  return team.picked
+    .map((pick, pickIndex) => ({ pick, pickIndex }))
+    .filter(({ pick, pickIndex }) => pickIndex !== currentPickIndex && pick.player)
+    .map(({ pick, pickIndex }) => ({
+      value: String(pickIndex),
+      pickIndex,
+      player: pick.player,
+      role: pick.role
+    }));
 }
 
 function updatePickPlayer(pick, player) {
@@ -738,6 +755,34 @@ function App() {
 
       nextTeams[fromTeamIndex].picked[fromPickIndex] = updatePickPlayer(fromPick, toPlayer);
       nextTeams[toTeamIndex].picked[toPickIndex] = updatePickPlayer(toPick, fromPlayer);
+
+      return nextTeams;
+    });
+  }
+
+  function handleInternalSwapPlayers(teamIndex, fromPickIndex, targetValue) {
+    if (!targetValue) return;
+
+    const toPickIndex = Number(targetValue);
+    if (!Number.isInteger(toPickIndex)) return;
+    if (fromPickIndex === toPickIndex) return;
+
+    setTeams((currentTeams) => {
+      const nextTeams = currentTeams.map((team) => ({
+        ...team,
+        picked: team.picked.map((pick) => ({ ...pick }))
+      }));
+
+      const fromPick = nextTeams[teamIndex]?.picked[fromPickIndex];
+      const toPick = nextTeams[teamIndex]?.picked[toPickIndex];
+
+      if (!fromPick?.player || !toPick?.player) return currentTeams;
+
+      const fromPlayer = fromPick.player;
+      const toPlayer = toPick.player;
+
+      nextTeams[teamIndex].picked[fromPickIndex] = updatePickPlayer(fromPick, toPlayer);
+      nextTeams[teamIndex].picked[toPickIndex] = updatePickPlayer(toPick, fromPlayer);
 
       return nextTeams;
     });
@@ -942,7 +987,19 @@ function App() {
                       </div>
                       <strong>{teams.length} equipos</strong>
                     </div>
-                    {teams.map((team, teamIndex) => <TeamCard key={team.name} team={team} teamIndex={teamIndex} teams={teams} categoryLabel={selectedCategoryLabel} isExporting={isExporting} onSwapPlayers={handleSwapPlayers} onExportTeam={handleExport} />)}
+                    {teams.map((team, teamIndex) => (
+                      <TeamCard
+                        key={team.name}
+                        team={team}
+                        teamIndex={teamIndex}
+                        teams={teams}
+                        categoryLabel={selectedCategoryLabel}
+                        isExporting={isExporting}
+                        onSwapPlayers={handleSwapPlayers}
+                        onInternalSwapPlayers={handleInternalSwapPlayers}
+                        onExportTeam={handleExport}
+                      />
+                    ))}
                   </div>
                 </>
               )}
@@ -1060,7 +1117,7 @@ function App() {
   );
 }
 
-function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPlayers, onExportTeam }) {
+function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPlayers, onInternalSwapPlayers, onExportTeam }) {
   const missing = team.picked.filter((item) => !item.player).length;
 
   return (
@@ -1086,12 +1143,37 @@ function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPl
           <div className={`pitch-line line-${normalizeText(group.line)}`} key={group.line}>
             {getVisualLineItems(group.items).map((item) => {
               const swapOptions = getSwapOptions(teams, teamIndex, item);
+              const internalSwapOptions = getInternalSwapOptions(team, item.roleIndex);
+              const manualAdjustment = isManualAdjustment(item);
 
               return (
                 <div className={`player-chip ${!item.player ? "missing" : ""}`} key={`${team.name}-${item.roleIndex}`}>
                   <span>{item.role.label}</span>
                   <strong>{item.player ? item.player.name : "Sin jugador"}</strong>
-                  {item.player && <small>{item.player.positionText} · {item.player.leg || "Sin pierna"}</small>}
+                  {item.player && (
+                    <small>
+                      {item.player.positionText} · {item.player.leg || "Sin pierna"}{manualAdjustment ? " · Ajuste manual" : ""}
+                    </small>
+                  )}
+
+                  {item.player && !isExporting && internalSwapOptions.length > 0 && (
+                    <select
+                      className="swap-select"
+                      value=""
+                      onChange={(event) => {
+                        onInternalSwapPlayers(teamIndex, item.roleIndex, event.target.value);
+                        event.target.value = "";
+                      }}
+                    >
+                      <option value="">Intercambiar dentro del 11...</option>
+                      {internalSwapOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.player.name} · está como {option.role.label} · {option.player.positionText || "Sin posición"}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
                   {item.player && !isExporting && swapOptions.length > 0 && (
                     <select
                       className="swap-select"
@@ -1101,7 +1183,7 @@ function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPl
                         event.target.value = "";
                       }}
                     >
-                      <option value="">Cambiar por...</option>
+                      <option value="">Cambiar por otro equipo...</option>
                       {swapOptions.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.player.name} · está en {option.teamName} · {option.player.positionText || "Sin posición"}
