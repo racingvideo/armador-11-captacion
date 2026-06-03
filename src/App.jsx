@@ -84,7 +84,7 @@ const FORMATIONS = {
   ]
 };
 
-const LINE_ORDER = ["Arquero", "Defensa", "Volantes defensivos", "Mediocampo", "Tres cuartos", "Ataque"];
+const LINE_ORDER = ["Arquero", "Defensa", "Volantes defensivos", "Mediocampo", "Tres cuartos", "Ataque", "Agregados manuales"];
 const EMPTY_DUPLICATE_SUMMARY = { samePlayer: [], sameNameDifferentDate: [] };
 
 function cleanText(value) {
@@ -456,15 +456,42 @@ function getPlayerFlexibility(player, roles) {
   return roles.reduce((total, role) => total + (playerRoleScore(player, role) === null ? 0 : 1), 0);
 }
 
-function makeEmptyPick(role, roleIndex) {
-  return { player: null, role, roleIndex, score: null };
+function makeEmptyPick(role, roleIndex, shirtNumber = "") {
+  return { player: null, role, roleIndex, score: null, shirtNumber };
+}
+
+function makePickFromRole(role, roleIndex, player = null, shirtNumber = "") {
+  return {
+    player,
+    role,
+    roleIndex,
+    score: player ? playerRoleScore(player, role) : null,
+    shirtNumber
+  };
 }
 
 function recalculateTeamStatus(team) {
   return {
     ...team,
-    isPartial: team.picked.filter((item) => item.player).length < team.picked.length
+    isPartial: team.picked.filter((item) => item.player).length < team.picked.filter((item) => !item.role?.isManualRole).length
   };
+}
+
+function withDefaultShirtNumbers(picked) {
+  return picked.map((pick, index) => ({
+    ...pick,
+    shirtNumber: pick.shirtNumber || String(index + 1)
+  }));
+}
+
+function getNextShirtNumber(team) {
+  const usedNumbers = team.picked
+    .map((pick) => Number(pick.shirtNumber))
+    .filter((number) => Number.isFinite(number));
+
+  let next = 1;
+  while (usedNumbers.includes(next)) next += 1;
+  return String(next);
 }
 
 function getRoleOrder(remainingPlayers, roles) {
@@ -500,7 +527,7 @@ function buildCompleteTeam(remainingPlayers, roles) {
   if (roleOrder.some((item) => item.candidatesCount === 0)) return null;
 
   const used = new Set();
-  const picked = Array.from({ length: roles.length }, (_, roleIndex) => makeEmptyPick(roles[roleIndex], roleIndex));
+  const picked = Array.from({ length: roles.length }, (_, roleIndex) => makeEmptyPick(roles[roleIndex], roleIndex, String(roleIndex + 1)));
   let attempts = 0;
   const maxAttempts = 60000;
 
@@ -514,10 +541,10 @@ function buildCompleteTeam(remainingPlayers, roles) {
 
     for (const candidate of candidates) {
       used.add(candidate.player.id);
-      picked[roleIndex] = candidate;
+      picked[roleIndex] = { ...candidate, shirtNumber: String(roleIndex + 1) };
       if (search(orderIndex + 1)) return true;
       used.delete(candidate.player.id);
-      picked[roleIndex] = makeEmptyPick(role, roleIndex);
+      picked[roleIndex] = makeEmptyPick(role, roleIndex, String(roleIndex + 1));
     }
 
     return false;
@@ -528,14 +555,14 @@ function buildCompleteTeam(remainingPlayers, roles) {
 
 function buildPartialTeam(remainingPlayers, roles) {
   const used = new Set();
-  const picked = Array.from({ length: roles.length }, (_, roleIndex) => makeEmptyPick(roles[roleIndex], roleIndex));
+  const picked = Array.from({ length: roles.length }, (_, roleIndex) => makeEmptyPick(roles[roleIndex], roleIndex, String(roleIndex + 1)));
   const roleOrder = getRoleOrder(remainingPlayers, roles);
 
   roleOrder.forEach(({ role, roleIndex }) => {
     const [bestCandidate] = getRoleCandidates(remainingPlayers, used, role, roleIndex, roles);
     if (!bestCandidate) return;
     used.add(bestCandidate.player.id);
-    picked[roleIndex] = bestCandidate;
+    picked[roleIndex] = { ...bestCandidate, shirtNumber: String(roleIndex + 1) };
   });
 
   return picked;
@@ -548,12 +575,13 @@ function generateMaximumTeams(players, formationName) {
 
   while (remainingPlayers.length > 0) {
     const completeTeam = remainingPlayers.length >= roles.length ? buildCompleteTeam(remainingPlayers, roles) : null;
-    const picked = completeTeam || buildPartialTeam(remainingPlayers, roles);
+    const picked = withDefaultShirtNumbers(completeTeam || buildPartialTeam(remainingPlayers, roles));
     const usedIds = new Set(picked.filter((item) => item.player).map((item) => item.player.id));
 
     if (usedIds.size === 0) break;
 
     teams.push({
+      id: `team-${Date.now()}-${teams.length}`,
       name: `Equipo ${teams.length + 1}`,
       formationName,
       picked,
@@ -578,7 +606,7 @@ function getVisualLineItems(items) {
 }
 
 function getSwapOptions(teams, currentTeamIndex, currentPick) {
-  if (!currentPick.player) return [];
+  if (!currentPick.player || currentPick.role?.isManualRole) return [];
 
   const currentLabel = normalizeText(currentPick.role.label);
 
@@ -587,7 +615,7 @@ function getSwapOptions(teams, currentTeamIndex, currentPick) {
 
     return team.picked
       .map((pick, pickIndex) => ({ pick, pickIndex }))
-      .filter(({ pick }) => pick.player && normalizeText(pick.role.label) === currentLabel)
+      .filter(({ pick }) => pick.player && !pick.role?.isManualRole && normalizeText(pick.role.label) === currentLabel)
       .map(({ pick, pickIndex }) => ({
         value: `${teamIndex}|${pickIndex}`,
         teamIndex,
@@ -645,9 +673,7 @@ function App() {
       });
   }, [players]);
 
-  const validCategories = useMemo(() => {
-    return categories.filter((item) => item !== "Fecha inválida");
-  }, [categories]);
+  const validCategories = useMemo(() => categories.filter((item) => item !== "Fecha inválida"), [categories]);
 
   const selectedCategoryLabel = useMemo(() => {
     return selectedCategories.length ? selectedCategories.join(", ") : "Sin categorías";
@@ -657,9 +683,7 @@ function App() {
     return players.filter((player) => selectedCategories.includes(player.category) && player.hasValidData);
   }, [players, selectedCategories]);
 
-  const invalidPlayers = useMemo(() => {
-    return players.filter((player) => !player.hasValidData);
-  }, [players]);
+  const invalidPlayers = useMemo(() => players.filter((player) => !player.hasValidData), [players]);
 
   const positionCount = useMemo(() => {
     const count = {};
@@ -672,7 +696,7 @@ function App() {
   }, [filteredPlayers]);
 
   const usedPlayers = useMemo(() => {
-    return new Set(teams.flatMap((team) => team.picked.filter((item) => item.player).map((item) => item.player.id)));
+    return new Set(teams.flatMap((team) => team.picked.filter((item) => item.player && !item.player.isManual).map((item) => item.player.id)));
   }, [teams]);
 
   const manualPlayersCount = useMemo(() => {
@@ -735,9 +759,7 @@ function App() {
     resetTeamsAndManualChanges();
     setError("");
     setSelectedCategories((current) => {
-      if (current.includes(categoryToToggle)) {
-        return current.filter((item) => item !== categoryToToggle);
-      }
+      if (current.includes(categoryToToggle)) return current.filter((item) => item !== categoryToToggle);
       return [...current, categoryToToggle].sort((a, b) => Number(a) - Number(b));
     });
   }
@@ -803,9 +825,11 @@ function App() {
 
       const fromPlayer = fromPick.player;
       const toPlayer = toPick.player;
+      const fromNumber = fromPick.shirtNumber;
+      const toNumber = toPick.shirtNumber;
 
-      nextTeams[fromTeamIndex].picked[fromPickIndex] = updatePickPlayer(fromPick, toPlayer);
-      nextTeams[toTeamIndex].picked[toPickIndex] = updatePickPlayer(toPick, fromPlayer);
+      nextTeams[fromTeamIndex].picked[fromPickIndex] = updatePickPlayer({ ...fromPick, shirtNumber: toNumber }, toPlayer);
+      nextTeams[toTeamIndex].picked[toPickIndex] = updatePickPlayer({ ...toPick, shirtNumber: fromNumber }, fromPlayer);
 
       nextTeams[fromTeamIndex] = recalculateTeamStatus(nextTeams[fromTeamIndex]);
       nextTeams[toTeamIndex] = recalculateTeamStatus(nextTeams[toTeamIndex]);
@@ -818,8 +842,7 @@ function App() {
     if (!targetValue) return;
 
     const toPickIndex = Number(targetValue);
-    if (!Number.isInteger(toPickIndex)) return;
-    if (fromPickIndex === toPickIndex) return;
+    if (!Number.isInteger(toPickIndex) || fromPickIndex === toPickIndex) return;
 
     setTeams((currentTeams) => {
       const nextTeams = currentTeams.map((team) => ({
@@ -834,9 +857,11 @@ function App() {
 
       const fromPlayer = fromPick.player;
       const toPlayer = toPick.player;
+      const fromNumber = fromPick.shirtNumber;
+      const toNumber = toPick.shirtNumber;
 
-      nextTeams[teamIndex].picked[fromPickIndex] = updatePickPlayer(fromPick, toPlayer);
-      nextTeams[teamIndex].picked[toPickIndex] = updatePickPlayer(toPick, fromPlayer);
+      nextTeams[teamIndex].picked[fromPickIndex] = updatePickPlayer({ ...fromPick, shirtNumber: toNumber }, toPlayer);
+      nextTeams[teamIndex].picked[toPickIndex] = updatePickPlayer({ ...toPick, shirtNumber: fromNumber }, fromPlayer);
       nextTeams[teamIndex] = recalculateTeamStatus(nextTeams[teamIndex]);
 
       return nextTeams;
@@ -862,6 +887,127 @@ function App() {
       }
 
       nextTeams[teamIndex] = recalculateTeamStatus(nextTeams[teamIndex]);
+      return nextTeams;
+    });
+  }
+
+  function handleShirtNumberChange(teamIndex, pickIndex, value) {
+    setTeams((currentTeams) => {
+      const nextTeams = currentTeams.map((team) => ({
+        ...team,
+        picked: team.picked.map((pick) => ({ ...pick }))
+      }));
+
+      if (!nextTeams[teamIndex]?.picked[pickIndex]) return currentTeams;
+
+      nextTeams[teamIndex].picked[pickIndex].shirtNumber = cleanText(value);
+      return nextTeams;
+    });
+  }
+
+  function handleRoleLabelChange(teamIndex, pickIndex, value) {
+    setTeams((currentTeams) => {
+      const nextTeams = currentTeams.map((team) => ({
+        ...team,
+        picked: team.picked.map((pick) => ({ ...pick, role: { ...pick.role } }))
+      }));
+
+      const pick = nextTeams[teamIndex]?.picked[pickIndex];
+      if (!pick?.role?.isManualRole) return currentTeams;
+
+      pick.role.label = value;
+      return nextTeams;
+    });
+  }
+
+  function handleAddManualSlot(teamIndex) {
+    setTeams((currentTeams) => {
+      const nextTeams = currentTeams.map((team) => ({
+        ...team,
+        picked: team.picked.map((pick) => ({ ...pick }))
+      }));
+
+      const team = nextTeams[teamIndex];
+      if (!team) return currentTeams;
+
+      const roleIndex = team.picked.length;
+      const role = {
+        line: "Agregados manuales",
+        label: `Jugador extra ${team.picked.filter((pick) => pick.role?.isManualRole).length + 1}`,
+        accepts: [],
+        isManualRole: true
+      };
+
+      team.picked.push(makeEmptyPick(role, roleIndex, getNextShirtNumber(team)));
+      nextTeams[teamIndex] = recalculateTeamStatus(team);
+      return nextTeams;
+    });
+  }
+
+  function handleRemoveManualSlot(teamIndex, pickIndex) {
+    setTeams((currentTeams) => {
+      const nextTeams = currentTeams.map((team) => ({
+        ...team,
+        picked: team.picked.map((pick) => ({ ...pick }))
+      }));
+
+      const team = nextTeams[teamIndex];
+      const pick = team?.picked[pickIndex];
+
+      if (!team || !pick?.role?.isManualRole) return currentTeams;
+
+      if (pick.player) {
+        setRemovedPlayers((currentRemoved) => [
+          ...currentRemoved,
+          {
+            id: `${Date.now()}-${teamIndex}-${pickIndex}-${pick.player.id}`,
+            name: pick.player.name,
+            positionText: pick.player.positionText || "Sin posición",
+            birthDateText: pick.player.birthDateText || "",
+            teamName: team.name,
+            roleLabel: pick.role.label,
+            origin: pick.player.isManual ? "Manual" : "Excel"
+          }
+        ]);
+      }
+
+      team.picked.splice(pickIndex, 1);
+      team.picked = team.picked.map((item, index) => ({ ...item, roleIndex: index }));
+      nextTeams[teamIndex] = recalculateTeamStatus(team);
+
+      return nextTeams;
+    });
+  }
+
+  function handleTeamFormationChange(teamIndex, newFormationName) {
+    setTeams((currentTeams) => {
+      const nextTeams = currentTeams.map((team) => ({
+        ...team,
+        picked: team.picked.map((pick) => ({ ...pick, role: { ...pick.role } }))
+      }));
+
+      const team = nextTeams[teamIndex];
+      if (!team) return currentTeams;
+
+      const standardPicks = team.picked.filter((pick) => !pick.role?.isManualRole);
+      const manualPicks = team.picked.filter((pick) => pick.role?.isManualRole);
+      const newRoles = FORMATIONS[newFormationName];
+
+      const newPicked = newRoles.map((role, index) => {
+        const oldPick = standardPicks[index];
+        return makePickFromRole(role, index, oldPick?.player || null, oldPick?.shirtNumber || String(index + 1));
+      });
+
+      const remappedManual = manualPicks.map((pick, manualIndex) => ({
+        ...pick,
+        roleIndex: newPicked.length + manualIndex
+      }));
+
+      nextTeams[teamIndex] = recalculateTeamStatus({
+        ...team,
+        formationName: newFormationName,
+        picked: [...newPicked, ...remappedManual]
+      });
 
       return nextTeams;
     });
@@ -1048,7 +1194,7 @@ function App() {
             </div>
 
             <div className="control-group">
-              <label>Formación</label>
+              <label>Formación inicial</label>
               <select value={formation} onChange={(event) => { setFormation(event.target.value); resetTeamsAndManualChanges(); setError(""); }}>
                 {Object.keys(FORMATIONS).map((item) => (
                   <option key={item} value={item}>{item}</option>
@@ -1077,7 +1223,7 @@ function App() {
               {teams.length === 0 ? (
                 <div className="empty-state">
                   <h2>Todavía no hay equipos generados</h2>
-                  <p>Elegí una o más categorías y una formación. Después tocá “Generar equipos”.</p>
+                  <p>Elegí una o más categorías y una formación inicial. Después tocá “Generar equipos”.</p>
                 </div>
               ) : (
                 <>
@@ -1096,13 +1242,13 @@ function App() {
                     <div className="export-title">
                       <div>
                         <p className="eyebrow dark-eyebrow">RACING DE MONTEVIDEO SAD</p>
-                        <h2>Equipos categorías {selectedCategoryLabel} · {formation}</h2>
+                        <h2>Equipos categorías {selectedCategoryLabel}</h2>
                       </div>
                       <strong>{teams.length} equipos</strong>
                     </div>
                     {teams.map((team, teamIndex) => (
                       <TeamCard
-                        key={team.name}
+                        key={team.id || team.name}
                         team={team}
                         teamIndex={teamIndex}
                         teams={teams}
@@ -1111,6 +1257,11 @@ function App() {
                         onSwapPlayers={handleSwapPlayers}
                         onInternalSwapPlayers={handleInternalSwapPlayers}
                         onManualNameChange={handleManualNameChange}
+                        onShirtNumberChange={handleShirtNumberChange}
+                        onRoleLabelChange={handleRoleLabelChange}
+                        onAddManualSlot={handleAddManualSlot}
+                        onRemoveManualSlot={handleRemoveManualSlot}
+                        onTeamFormationChange={handleTeamFormationChange}
                         onRemovePlayer={handleRemovePlayer}
                         onExportTeam={handleExport}
                       />
@@ -1263,7 +1414,23 @@ function App() {
   );
 }
 
-function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPlayers, onInternalSwapPlayers, onManualNameChange, onRemovePlayer, onExportTeam }) {
+function TeamCard({
+  team,
+  teamIndex,
+  teams,
+  categoryLabel,
+  isExporting,
+  onSwapPlayers,
+  onInternalSwapPlayers,
+  onManualNameChange,
+  onShirtNumberChange,
+  onRoleLabelChange,
+  onAddManualSlot,
+  onRemoveManualSlot,
+  onTeamFormationChange,
+  onRemovePlayer,
+  onExportTeam
+}) {
   const missing = team.picked.filter((item) => !item.player).length;
 
   return (
@@ -1277,6 +1444,17 @@ function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPl
           <strong className={missing ? "missing-pill" : "ok-pill"}>{missing ? `${missing} faltantes` : "Completo"}</strong>
           {!isExporting && (
             <>
+              <select
+                className="swap-select"
+                value={team.formationName}
+                onChange={(event) => onTeamFormationChange(teamIndex, event.target.value)}
+                style={{ minWidth: "130px" }}
+              >
+                {Object.keys(FORMATIONS).map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+              <button className="secondary-button" type="button" onClick={() => onAddManualSlot(teamIndex)}>Agregar parado</button>
               <button className="secondary-button" type="button" onClick={() => onExportTeam("png", teamIndex)}>Descargar imagen</button>
               <button className="secondary-button" type="button" onClick={() => onExportTeam("pdf", teamIndex)}>Descargar PDF</button>
             </>
@@ -1291,10 +1469,69 @@ function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPl
               const swapOptions = getSwapOptions(teams, teamIndex, item);
               const internalSwapOptions = getInternalSwapOptions(team, item.roleIndex);
               const playerDescription = getPlayerDescription(item);
+              const shirtNumber = cleanText(item.shirtNumber);
 
               return (
                 <div className={`player-chip ${!item.player ? "missing" : ""}`} key={`${team.name}-${item.roleIndex}`}>
-                  <span>{item.role.label}</span>
+                  {!isExporting && (
+                    <input
+                      type="text"
+                      value={shirtNumber}
+                      onChange={(event) => onShirtNumberChange(teamIndex, item.roleIndex, event.target.value)}
+                      placeholder="N°"
+                      style={{
+                        width: "52px",
+                        marginBottom: "6px",
+                        padding: "6px 8px",
+                        borderRadius: "10px",
+                        border: "1px solid rgba(0,0,0,0.18)",
+                        fontSize: "12px",
+                        textAlign: "center",
+                        fontWeight: "800"
+                      }}
+                    />
+                  )}
+
+                  {isExporting && shirtNumber && (
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        minWidth: "28px",
+                        height: "28px",
+                        padding: "0 8px",
+                        borderRadius: "999px",
+                        background: "rgba(0,0,0,0.78)",
+                        color: "white",
+                        fontSize: "13px",
+                        fontWeight: "800",
+                        marginBottom: "6px"
+                      }}
+                    >
+                      {shirtNumber}
+                    </div>
+                  )}
+
+                  {item.role?.isManualRole && !isExporting ? (
+                    <input
+                      type="text"
+                      value={item.role.label}
+                      onChange={(event) => onRoleLabelChange(teamIndex, item.roleIndex, event.target.value)}
+                      placeholder="Nombre del puesto"
+                      style={{
+                        width: "100%",
+                        marginBottom: "6px",
+                        padding: "7px 9px",
+                        borderRadius: "10px",
+                        border: "1px solid rgba(0,0,0,0.18)",
+                        fontSize: "12px"
+                      }}
+                    />
+                  ) : (
+                    <span>{item.role.label}</span>
+                  )}
+
                   <strong>{item.player ? item.player.name : "Sin jugador"}</strong>
 
                   {item.player && <small>{playerDescription}</small>}
@@ -1329,6 +1566,22 @@ function TeamCard({ team, teamIndex, teams, categoryLabel, isExporting, onSwapPl
                       }}
                     >
                       Quitar del 11
+                    </button>
+                  )}
+
+                  {item.role?.isManualRole && !isExporting && (
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => onRemoveManualSlot(teamIndex, item.roleIndex)}
+                      style={{
+                        width: "100%",
+                        marginTop: "8px",
+                        padding: "8px 10px",
+                        fontSize: "12px"
+                      }}
+                    >
+                      Eliminar parado
                     </button>
                   )}
 
