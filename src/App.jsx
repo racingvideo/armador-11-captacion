@@ -84,7 +84,7 @@ const FORMATIONS = {
   ]
 };
 
-const LINE_ORDER = ["Arquero", "Defensa", "Volantes defensivos", "Mediocampo", "Tres cuartos", "Ataque", "Agregados manuales"];
+const LINE_ORDER = ["Arquero", "Defensa", "Volantes defensivos", "Mediocampo", "Tres cuartos", "Ataque"];
 const EMPTY_DUPLICATE_SUMMARY = { samePlayer: [], sameNameDifferentDate: [] };
 
 function cleanText(value) {
@@ -104,9 +104,7 @@ function getColumnValue(row, aliases) {
 
   for (const alias of aliases) {
     const normalizedAlias = normalizeText(alias);
-    if (Object.prototype.hasOwnProperty.call(normalizedRow, normalizedAlias)) {
-      return normalizedRow[normalizedAlias];
-    }
+    if (Object.prototype.hasOwnProperty.call(normalizedRow, normalizedAlias)) return normalizedRow[normalizedAlias];
   }
 
   return "";
@@ -115,9 +113,7 @@ function getColumnValue(row, aliases) {
 function parseExcelDate(value) {
   if (!value) return null;
 
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value;
-  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
 
   if (typeof value === "number") {
     const utcDays = Math.floor(value - 25569);
@@ -164,17 +160,13 @@ function canonicalizePosition(value) {
 
   if (text.includes("arquero") || text.includes("golero") || text.includes("portero")) return "Arquero";
   if (text.includes("defensa central") || text.includes("zaguero") || text.includes("central")) return "Defensa Central";
-
   if (text.includes("lateral derecho") || text === "ld" || text.includes("marcador derecho")) return "Lateral Derecho";
   if (text.includes("lateral izquierdo") || text === "li" || text.includes("marcador izquierdo")) return "Lateral Izquierdo";
-
   if (text.includes("volante central") || text.includes("mediocentro") || text.includes("medio centro") || text === "5" || text.includes("(5)")) return "Volante Central (5)";
   if (text.includes("volante interno") || text.includes("interno")) return "Volante Interno";
   if (text.includes("volante externo") || text.includes("volante extremo") || text.includes("carrilero")) return "Volante Extremo";
-
   if (text.includes("extremo derecho") || text === "ed" || text.includes("punta derecha")) return "Extremo Derecho";
   if (text.includes("extremo izquierdo") || text === "ei" || text.includes("punta izquierda")) return "Extremo Izquierdo";
-
   if (text.includes("delantero centro") || text.includes("delantero central") || text.includes("centro delantero") || text.includes("centrodelantero") || text === "9") return "Delantero Centro";
   if (text.includes("enganche") || text.includes("media punta") || text.includes("mediapunta") || text.includes("10")) return "Enganche";
 
@@ -473,7 +465,7 @@ function makePickFromRole(role, roleIndex, player = null, shirtNumber = "") {
 function recalculateTeamStatus(team) {
   return {
     ...team,
-    isPartial: team.picked.filter((item) => item.player).length < team.picked.filter((item) => !item.role?.isManualRole).length
+    isPartial: team.picked.filter((item) => item.player).length < team.picked.length
   };
 }
 
@@ -482,16 +474,6 @@ function withDefaultShirtNumbers(picked) {
     ...pick,
     shirtNumber: pick.shirtNumber || String(index + 1)
   }));
-}
-
-function getNextShirtNumber(team) {
-  const usedNumbers = team.picked
-    .map((pick) => Number(pick.shirtNumber))
-    .filter((number) => Number.isFinite(number));
-
-  let next = 1;
-  while (usedNumbers.includes(next)) next += 1;
-  return String(next);
 }
 
 function getRoleOrder(remainingPlayers, roles) {
@@ -568,6 +550,19 @@ function buildPartialTeam(remainingPlayers, roles) {
   return picked;
 }
 
+function createEmptyTeam(formationName, teamNumber) {
+  const roles = FORMATIONS[formationName];
+
+  return {
+    id: `manual-team-${Date.now()}-${teamNumber}`,
+    name: `Equipo ${teamNumber}`,
+    formationName,
+    picked: roles.map((role, roleIndex) => makeEmptyPick(role, roleIndex, String(roleIndex + 1))),
+    isPartial: true,
+    isManualTeam: true
+  };
+}
+
 function generateMaximumTeams(players, formationName) {
   const roles = FORMATIONS[formationName];
   let remainingPlayers = players.filter((player) => player.hasValidData);
@@ -585,7 +580,8 @@ function generateMaximumTeams(players, formationName) {
       name: `Equipo ${teams.length + 1}`,
       formationName,
       picked,
-      isPartial: usedIds.size < roles.length
+      isPartial: usedIds.size < roles.length,
+      isManualTeam: false
     });
 
     remainingPlayers = remainingPlayers.filter((player) => !usedIds.has(player.id));
@@ -606,7 +602,7 @@ function getVisualLineItems(items) {
 }
 
 function getSwapOptions(teams, currentTeamIndex, currentPick) {
-  if (!currentPick.player || currentPick.role?.isManualRole) return [];
+  if (!currentPick.player) return [];
 
   const currentLabel = normalizeText(currentPick.role.label);
 
@@ -615,7 +611,7 @@ function getSwapOptions(teams, currentTeamIndex, currentPick) {
 
     return team.picked
       .map((pick, pickIndex) => ({ pick, pickIndex }))
-      .filter(({ pick }) => pick.player && !pick.role?.isManualRole && normalizeText(pick.role.label) === currentLabel)
+      .filter(({ pick }) => pick.player && normalizeText(pick.role.label) === currentLabel)
       .map(({ pick, pickIndex }) => ({
         value: `${teamIndex}|${pickIndex}`,
         teamIndex,
@@ -802,6 +798,14 @@ function App() {
     setError("");
   }
 
+  function handleAddEditableTeam() {
+    setTeams((currentTeams) => [
+      ...currentTeams,
+      createEmptyTeam(formation, currentTeams.length + 1)
+    ]);
+    setError("");
+  }
+
   function handleSwapPlayers(fromTeamIndex, fromPickIndex, targetValue) {
     if (!targetValue) return;
 
@@ -905,80 +909,6 @@ function App() {
     });
   }
 
-  function handleRoleLabelChange(teamIndex, pickIndex, value) {
-    setTeams((currentTeams) => {
-      const nextTeams = currentTeams.map((team) => ({
-        ...team,
-        picked: team.picked.map((pick) => ({ ...pick, role: { ...pick.role } }))
-      }));
-
-      const pick = nextTeams[teamIndex]?.picked[pickIndex];
-      if (!pick?.role?.isManualRole) return currentTeams;
-
-      pick.role.label = value;
-      return nextTeams;
-    });
-  }
-
-  function handleAddManualSlot(teamIndex) {
-    setTeams((currentTeams) => {
-      const nextTeams = currentTeams.map((team) => ({
-        ...team,
-        picked: team.picked.map((pick) => ({ ...pick }))
-      }));
-
-      const team = nextTeams[teamIndex];
-      if (!team) return currentTeams;
-
-      const roleIndex = team.picked.length;
-      const role = {
-        line: "Agregados manuales",
-        label: `Jugador extra ${team.picked.filter((pick) => pick.role?.isManualRole).length + 1}`,
-        accepts: [],
-        isManualRole: true
-      };
-
-      team.picked.push(makeEmptyPick(role, roleIndex, getNextShirtNumber(team)));
-      nextTeams[teamIndex] = recalculateTeamStatus(team);
-      return nextTeams;
-    });
-  }
-
-  function handleRemoveManualSlot(teamIndex, pickIndex) {
-    setTeams((currentTeams) => {
-      const nextTeams = currentTeams.map((team) => ({
-        ...team,
-        picked: team.picked.map((pick) => ({ ...pick }))
-      }));
-
-      const team = nextTeams[teamIndex];
-      const pick = team?.picked[pickIndex];
-
-      if (!team || !pick?.role?.isManualRole) return currentTeams;
-
-      if (pick.player) {
-        setRemovedPlayers((currentRemoved) => [
-          ...currentRemoved,
-          {
-            id: `${Date.now()}-${teamIndex}-${pickIndex}-${pick.player.id}`,
-            name: pick.player.name,
-            positionText: pick.player.positionText || "Sin posición",
-            birthDateText: pick.player.birthDateText || "",
-            teamName: team.name,
-            roleLabel: pick.role.label,
-            origin: pick.player.isManual ? "Manual" : "Excel"
-          }
-        ]);
-      }
-
-      team.picked.splice(pickIndex, 1);
-      team.picked = team.picked.map((item, index) => ({ ...item, roleIndex: index }));
-      nextTeams[teamIndex] = recalculateTeamStatus(team);
-
-      return nextTeams;
-    });
-  }
-
   function handleTeamFormationChange(teamIndex, newFormationName) {
     setTeams((currentTeams) => {
       const nextTeams = currentTeams.map((team) => ({
@@ -989,24 +919,18 @@ function App() {
       const team = nextTeams[teamIndex];
       if (!team) return currentTeams;
 
-      const standardPicks = team.picked.filter((pick) => !pick.role?.isManualRole);
-      const manualPicks = team.picked.filter((pick) => pick.role?.isManualRole);
+      const oldPicks = team.picked;
       const newRoles = FORMATIONS[newFormationName];
 
       const newPicked = newRoles.map((role, index) => {
-        const oldPick = standardPicks[index];
+        const oldPick = oldPicks[index];
         return makePickFromRole(role, index, oldPick?.player || null, oldPick?.shirtNumber || String(index + 1));
       });
-
-      const remappedManual = manualPicks.map((pick, manualIndex) => ({
-        ...pick,
-        roleIndex: newPicked.length + manualIndex
-      }));
 
       nextTeams[teamIndex] = recalculateTeamStatus({
         ...team,
         formationName: newFormationName,
-        picked: [...newPicked, ...remappedManual]
+        picked: newPicked
       });
 
       return nextTeams;
@@ -1224,6 +1148,7 @@ function App() {
                 <div className="empty-state">
                   <h2>Todavía no hay equipos generados</h2>
                   <p>Elegí una o más categorías y una formación inicial. Después tocá “Generar equipos”.</p>
+                  <button className="primary-button" onClick={handleAddEditableTeam}>Agregar cancha editable</button>
                 </div>
               ) : (
                 <>
@@ -1233,6 +1158,7 @@ function App() {
                       <p>{completeTeamsCount} completos · {partialTeamsCount} incompletos · {usedPlayers.size} jugadores ubicados · {manualPlayersCount} agregados manualmente · {notUsedPlayers.length} fuera de los 11.</p>
                     </div>
                     <div className="export-actions">
+                      <button className="secondary-button" onClick={handleAddEditableTeam}>Agregar cancha editable</button>
                       <button className="secondary-button" onClick={() => handleExport("png")} disabled={isExporting}>{isExporting ? "Exportando..." : "Exportar todas las imágenes"}</button>
                       <button className="secondary-button" onClick={() => handleExport("pdf")} disabled={isExporting}>{isExporting ? "Exportando..." : "Exportar PDF completo"}</button>
                     </div>
@@ -1258,9 +1184,6 @@ function App() {
                         onInternalSwapPlayers={handleInternalSwapPlayers}
                         onManualNameChange={handleManualNameChange}
                         onShirtNumberChange={handleShirtNumberChange}
-                        onRoleLabelChange={handleRoleLabelChange}
-                        onAddManualSlot={handleAddManualSlot}
-                        onRemoveManualSlot={handleRemoveManualSlot}
                         onTeamFormationChange={handleTeamFormationChange}
                         onRemovePlayer={handleRemovePlayer}
                         onExportTeam={handleExport}
@@ -1424,9 +1347,6 @@ function TeamCard({
   onInternalSwapPlayers,
   onManualNameChange,
   onShirtNumberChange,
-  onRoleLabelChange,
-  onAddManualSlot,
-  onRemoveManualSlot,
   onTeamFormationChange,
   onRemovePlayer,
   onExportTeam
@@ -1454,7 +1374,6 @@ function TeamCard({
                   <option key={item} value={item}>{item}</option>
                 ))}
               </select>
-              <button className="secondary-button" type="button" onClick={() => onAddManualSlot(teamIndex)}>Agregar parado</button>
               <button className="secondary-button" type="button" onClick={() => onExportTeam("png", teamIndex)}>Descargar imagen</button>
               <button className="secondary-button" type="button" onClick={() => onExportTeam("pdf", teamIndex)}>Descargar PDF</button>
             </>
@@ -1513,25 +1432,7 @@ function TeamCard({
                     </div>
                   )}
 
-                  {item.role?.isManualRole && !isExporting ? (
-                    <input
-                      type="text"
-                      value={item.role.label}
-                      onChange={(event) => onRoleLabelChange(teamIndex, item.roleIndex, event.target.value)}
-                      placeholder="Nombre del puesto"
-                      style={{
-                        width: "100%",
-                        marginBottom: "6px",
-                        padding: "7px 9px",
-                        borderRadius: "10px",
-                        border: "1px solid rgba(0,0,0,0.18)",
-                        fontSize: "12px"
-                      }}
-                    />
-                  ) : (
-                    <span>{item.role.label}</span>
-                  )}
-
+                  <span>{item.role.label}</span>
                   <strong>{item.player ? item.player.name : "Sin jugador"}</strong>
 
                   {item.player && <small>{playerDescription}</small>}
@@ -1566,22 +1467,6 @@ function TeamCard({
                       }}
                     >
                       Quitar del 11
-                    </button>
-                  )}
-
-                  {item.role?.isManualRole && !isExporting && (
-                    <button
-                      type="button"
-                      className="secondary-button"
-                      onClick={() => onRemoveManualSlot(teamIndex, item.roleIndex)}
-                      style={{
-                        width: "100%",
-                        marginTop: "8px",
-                        padding: "8px 10px",
-                        fontSize: "12px"
-                      }}
-                    >
-                      Eliminar parado
                     </button>
                   )}
 
