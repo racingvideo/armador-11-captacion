@@ -29,7 +29,7 @@ const A = {
 };
 
 const FORMATIONS = {
-  "1-4-3-3": [
+  "Fútbol 11 · 1-4-3-3": [
     r("Arquero", "Arquero", A.arquero),
     r("Defensa", "Lateral derecho", A.lateralDerecho),
     r("Defensa", "Zaguero", A.zaguero),
@@ -42,7 +42,7 @@ const FORMATIONS = {
     r("Ataque", "Delantero centro", A.delanteroCentro),
     r("Ataque", "Extremo izquierdo", A.extremoIzquierdo)
   ],
-  "1-4-2-3-1": [
+  "Fútbol 11 · 1-4-2-3-1": [
     r("Arquero", "Arquero", A.arquero),
     r("Defensa", "Lateral derecho", A.lateralDerecho),
     r("Defensa", "Zaguero", A.zaguero),
@@ -55,7 +55,7 @@ const FORMATIONS = {
     r("Tres cuartos", "Extremo izquierdo", A.extremoIzquierdoSimple),
     r("Ataque", "Delantero centro", A.delanteroCentro)
   ],
-  "1-4-4-2": [
+  "Fútbol 11 · 1-4-4-2": [
     r("Arquero", "Arquero", A.arquero),
     r("Defensa", "Lateral derecho", A.lateralDerecho),
     r("Defensa", "Zaguero", A.zaguero),
@@ -68,7 +68,7 @@ const FORMATIONS = {
     r("Ataque", "Delantero", A.delanteroCentro),
     r("Ataque", "Delantero", A.delanteroCentro)
   ],
-  "1-3-5-2": [
+  "Fútbol 11 · 1-3-5-2": [
     r("Arquero", "Arquero", A.arquero),
     r("Defensa", "Zaguero", [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Lateral Izquierdo", score: 4 }]),
     r("Defensa", "Zaguero", [{ pos: "Defensa Central", score: 0 }, { pos: "Volante Central (5)", score: 5 }]),
@@ -81,7 +81,7 @@ const FORMATIONS = {
     r("Ataque", "Delantero", A.delanteroCentro),
     r("Ataque", "Delantero", A.delanteroCentro)
   ],
-  "1-5-3-2": [
+  "Fútbol 11 · 1-5-3-2": [
     r("Arquero", "Arquero", A.arquero),
     r("Defensa", "Lateral derecho", [{ pos: "Lateral Derecho", score: 0 }, { pos: "Volante Extremo", score: 4 }, { pos: "Extremo Derecho", score: 5 }]),
     r("Defensa", "Zaguero", A.zagueroDerecho),
@@ -94,7 +94,7 @@ const FORMATIONS = {
     r("Ataque", "Delantero", A.delanteroCentro),
     r("Ataque", "Delantero", A.delanteroCentro)
   ],
-  "1-3-4-3": [
+  "Fútbol 11 · 1-3-4-3": [
     r("Arquero", "Arquero", A.arquero),
     r("Defensa", "Zaguero", [{ pos: "Defensa Central", score: 0 }, { pos: "Lateral Derecho", score: 4 }, { pos: "Lateral Izquierdo", score: 4 }]),
     r("Defensa", "Zaguero", [{ pos: "Defensa Central", score: 0 }, { pos: "Volante Central (5)", score: 5 }]),
@@ -106,6 +106,66 @@ const FORMATIONS = {
     r("Ataque", "Extremo derecho", A.extremoDerechoSimple),
     r("Ataque", "Delantero centro", A.delanteroCentro),
     r("Ataque", "Extremo izquierdo", A.extremoIzquierdoSimple)
+  ],
+  "Fútbol 9 · 1-3-3-2": [
+    r("Arquero", "Arquero", A.arquero),
+    r("Defensa", "Lateral derecho", A.lateralDerecho),
+    r("Defensa", "Zaguero", A.zaguero),
+    r("Defensa", "Lateral izquierdo", A.lateralIzquierdo),
+    r("Mediocampo", "Volante derecho", A.volanteDerecho),
+    r("Mediocampo", "Volante central", A.volanteCentral),
+    r("Mediocampo", "Volante izquierdo", A.volanteIzquierdo),
+    r("Ataque", "Delantero", A.delanteroCentro),
+    r("Ataque", "Delantero", A.delanteroCentro)
+  ],
+  "Fútbol 9 · 1-3-2-3": [
+    r("Arquero", "Arquero", A.arquero),
+    r("Defensa", "Lateral derecho", A.lateralDerecho),
+    r("Defensa", "Zaguero", A.zaguero),
+    r("Defensa", "Lateral izquierdo", A.lateralIzquierdo),
+    r("Mediocampo", "Volante central", A.volanteCentral),
+    r("Mediocampo", "Interno", A.interno),
+    r("Ataque", "Extremo derecho", A.extremoDerechoSimple),
+    r("Ataque", "Delantero centro", A.delanteroCentro),
+    r("Ataque", "Extremo izquierdo", A.extremoIzquierdoSimple)
+  ],
+  "Fútbol 9 · 1-4-3-1": [
+    r("Arquero", "Arquero", A.arquero),
+    r("Defensa", "Lateral derecho", A.lateralDerecho),
+    r("Defensa", "Zaguero", A.zaguero),
+    r("Defensa", "Zaguero", A.zaguero),
+    r("Defensa", "Lateral izquierdo", A.lateralIzquierdo),
+    r("Mediocampo", "Volante central", A.volanteCentral),
+    r("Mediocampo", "Interno", A.interno),
+    r("Mediocampo", "Interno", A.interno),
+    r("Ataque", "Delantero centro", A.delanteroCentro)
+  ],
+  "Fútbol 7 · 1-2-3-1": [
+    r("Arquero", "Arquero", A.arquero),
+    r("Defensa", "Zaguero", A.zaguero),
+    r("Defensa", "Zaguero", A.zaguero),
+    r("Mediocampo", "Volante derecho", A.volanteDerecho),
+    r("Mediocampo", "Volante central", A.volanteCentral),
+    r("Mediocampo", "Volante izquierdo", A.volanteIzquierdo),
+    r("Ataque", "Delantero centro", A.delanteroCentro)
+  ],
+  "Fútbol 7 · 1-3-2-1": [
+    r("Arquero", "Arquero", A.arquero),
+    r("Defensa", "Lateral derecho", A.lateralDerecho),
+    r("Defensa", "Zaguero", A.zaguero),
+    r("Defensa", "Lateral izquierdo", A.lateralIzquierdo),
+    r("Mediocampo", "Volante central", A.volanteCentral),
+    r("Mediocampo", "Interno", A.interno),
+    r("Ataque", "Delantero centro", A.delanteroCentro)
+  ],
+  "Fútbol 7 · 1-2-2-2": [
+    r("Arquero", "Arquero", A.arquero),
+    r("Defensa", "Zaguero", A.zaguero),
+    r("Defensa", "Zaguero", A.zaguero),
+    r("Mediocampo", "Volante central", A.volanteCentral),
+    r("Mediocampo", "Interno", A.interno),
+    r("Ataque", "Delantero", A.delanteroCentro),
+    r("Ataque", "Delantero", A.delanteroCentro)
   ]
 };
 
@@ -683,7 +743,7 @@ function App() {
   const [duplicateSummary, setDuplicateSummary] = useState(EMPTY_DUPLICATE_SUMMARY);
   const [fileName, setFileName] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [formation, setFormation] = useState("1-4-3-3");
+  const [formation, setFormation] = useState("Fútbol 11 · 1-4-3-3");
   const [teams, setTeams] = useState([]);
   const [removedPlayers, setRemovedPlayers] = useState([]);
   const [error, setError] = useState("");
@@ -1103,8 +1163,8 @@ function App() {
       <section className="hero">
         <div>
           <p className="eyebrow">RACING DE MONTEVIDEO SAD</p>
-          <h1>Armador automático de 11</h1>
-          <p className="subtitle">Cargá el Excel de inscripción, combiná una o varias categorías y generá la mayor cantidad posible de equipos sin repetir jugadores.</p>
+          <h1>Armador automático de equipos</h1>
+          <p className="subtitle">Cargá el Excel de inscripción, combiná una o varias categorías y generá equipos de fútbol 11, fútbol 9 o fútbol 7 sin repetir jugadores.</p>
         </div>
         <div className="badge">Captación</div>
       </section>
@@ -1164,7 +1224,7 @@ function App() {
             </div>
 
             <div className="control-group">
-              <label>Formación inicial</label>
+              <label>Modalidad y formación inicial</label>
               <select value={formation} onChange={(event) => { setFormation(event.target.value); resetTeamsAndManualChanges(); setError(""); }}>
                 {Object.keys(FORMATIONS).map((item) => (
                   <option key={item} value={item}>{item}</option>
@@ -1193,7 +1253,7 @@ function App() {
               {teams.length === 0 ? (
                 <div className="empty-state">
                   <h2>Todavía no hay equipos generados</h2>
-                  <p>Elegí una o más categorías y una formación inicial. Después tocá “Generar equipos”.</p>
+                  <p>Elegí una o más categorías y una modalidad inicial. Después tocá “Generar equipos”.</p>
                   <button className="primary-button" onClick={handleAddEditableTeam}>Agregar cancha editable</button>
                 </div>
               ) : (
@@ -1201,7 +1261,7 @@ function App() {
                   <section className="panel export-panel">
                     <div>
                       <h2>{teams.length} equipos generados</h2>
-                      <p>{completeTeamsCount} completos · {partialTeamsCount} incompletos · {usedPlayers.size} jugadores ubicados · {manualPlayersCount} agregados manualmente · {notUsedPlayers.length} fuera de los 11.</p>
+                      <p>{completeTeamsCount} completos · {partialTeamsCount} incompletos · {usedPlayers.size} jugadores ubicados · {manualPlayersCount} agregados manualmente · {notUsedPlayers.length} fuera de los equipos.</p>
                     </div>
                     <div className="export-actions">
                       <button className="secondary-button" onClick={handleAddEditableTeam}>Agregar cancha editable</button>
@@ -1244,7 +1304,7 @@ function App() {
 
           {teams.length > 0 && (
             <section className="panel table-panel">
-              <h2>Jugadores sin ubicar o fuera de los 11</h2>
+              <h2>Jugadores sin ubicar o fuera de los equipos</h2>
               <p className="small-text">Son jugadores válidos de las categorías seleccionadas que no quedaron actualmente en ningún equipo.</p>
               <div className="table-wrap">
                 <table>
@@ -1260,7 +1320,7 @@ function App() {
                   <tbody>
                     {notUsedPlayers.length === 0 ? (
                       <tr>
-                        <td colSpan="5">No quedaron jugadores fuera de los 11.</td>
+                        <td colSpan="5">No quedaron jugadores fuera de los equipos.</td>
                       </tr>
                     ) : (
                       notUsedPlayers.map((player) => (
@@ -1416,7 +1476,7 @@ function TeamCard({
                 className="swap-select"
                 value={team.formationName}
                 onChange={(event) => onTeamFormationChange(teamIndex, event.target.value)}
-                style={{ minWidth: "130px" }}
+                style={{ minWidth: "170px" }}
               >
                 {Object.keys(FORMATIONS).map((item) => (
                   <option key={item} value={item}>{item}</option>
@@ -1522,7 +1582,7 @@ function TeamCard({
                         fontSize: "12px"
                       }}
                     >
-                      Quitar del 11
+                      Quitar del equipo
                     </button>
                   )}
 
@@ -1535,7 +1595,7 @@ function TeamCard({
                         event.target.value = "";
                       }}
                     >
-                      <option value="">Intercambiar dentro del 11...</option>
+                      <option value="">Intercambiar dentro del equipo...</option>
                       {internalSwapOptions.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.player.name} · está como {option.role.label} · {option.player.positionText || "Sin posición"}
